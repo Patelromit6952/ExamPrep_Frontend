@@ -316,7 +316,7 @@ export default function CreateExamPage() {
             <Input
               label="Negative marks (per wrong answer)"
               type="number"
-              step="0.25"
+              step="0.01"
               min="0"
               {...register("negativeMarks", { min: 0 })}
             />
@@ -342,11 +342,12 @@ export default function CreateExamPage() {
             <div className="space-y-2">
               {fields.map((field, index) => (
                 <div key={field.id} className="flex gap-2">
-                  <Input
-                    placeholder={`Instruction ${index + 1}`}
-                    className="flex-1"
-                    {...register(`instructions.${index}.value`)}
-                  />
+                  <div className="flex-1">
+                    <Input
+                      placeholder={`Instruction ${index + 1}`}
+                      {...register(`instructions.${index}.value`)}
+                    />
+                  </div>
                   <button
                     type="button"
                     onClick={() => remove(index)}
