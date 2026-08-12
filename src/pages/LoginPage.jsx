@@ -148,11 +148,6 @@ export default function LoginPage() {
         </Link>
       </p>
 
-      <div className="mt-6 pt-5 border-t border-slate-200 text-xs text-slate-400 space-y-1">
-        <p className="font-medium text-slate-500">Demo credentials (after seeding):</p>
-        <p>Student: student@examprep.in / Student@12345</p>
-        <p>Admin: admin@examprep.in / Admin@12345</p>
-      </div>
     </div>
   );
 }
