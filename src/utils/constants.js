@@ -43,4 +43,4 @@ export const deriveQuestionStatus = (answer) => {
   return QUESTION_STATUS.NOT_ANSWERED;
 };
 
-export const EXAM_CATEGORIES = ["SSC", "Banking", "Railway", "GPSC", "UPSC", "Other"];
+export const EXAM_CATEGORIES = ["SSC","GSSSB","GPSSB","Banking", "Railway", "GPSC", "UPSC", "Other"];
