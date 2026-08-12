@@ -1,6 +1,7 @@
 import axios from "axios";
 
-const baseURL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
+const baseURL =
+  "https://examprep-backend-7o6u.onrender.com/api" || "http://localhost:5000/api";
 
 // Central Axios instance. `withCredentials` is required so the httpOnly
 // JWT cookie set by the backend is sent on every request.
