@@ -414,7 +414,6 @@
 // // }
 
 
-
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ChevronLeft, ChevronRight, Bookmark, Eraser, Send } from "lucide-react";
@@ -656,6 +655,14 @@ export default function ExamPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentQuestion, attemptId]);
 
+  // Scroll back to top of the question pane whenever the question changes,
+  // so a long question always starts from its top instead of wherever the
+  // previous question's scroll position happened to be.
+  const questionScrollRef = useRef(null);
+  useEffect(() => {
+    questionScrollRef.current?.scrollTo({ top: 0, behavior: "auto" });
+  }, [currentIndex, currentQuestion]);
+
   const handleSelect = useCallback(
     (optionId) => {
       if (!currentQuestion) return;
@@ -811,26 +818,31 @@ export default function ExamPage() {
   const totalQuestionsDisplay = isSectionTimed ? currentSectionQuestions.length : questions.length;
 
   return (
-    <div className="h-screen flex flex-col overflow-hidden">
-      <TimerBar
-        examTitle={isSectionTimed && currentSection ? `${exam.title} - ${currentSection.title}` : exam.title}
-        formatted={formatted}
-        isCritical={isCritical}
-        answeredCount={answeredCount}
-        totalCount={totalQuestionsDisplay}
-        onOpenPalette={() => setPaletteOpen(true)}
-        tabSwitchWarnings={tabSwitchWarnings}
-        maxTabSwitchWarnings={MAX_TAB_SWITCH_WARNINGS}
-        sectionLabel={isSectionTimed && currentSection ? `Section ${currentSection.index + 1} of ${currentSection.totalSections}` : undefined}
-      />
+    // h-dvh (dynamic viewport height) instead of h-screen so mobile browser
+    // chrome (address bar showing/hiding) doesn't clip the bottom toolbar.
+    <div className="h-dvh flex flex-col overflow-hidden bg-white">
+      {/* Sticky timer bar - always visible, never scrolls away */}
+      <div className="shrink-0 sticky top-0 z-20">
+        <TimerBar
+          examTitle={isSectionTimed && currentSection ? `${exam.title} - ${currentSection.title}` : exam.title}
+          formatted={formatted}
+          isCritical={isCritical}
+          answeredCount={answeredCount}
+          totalCount={totalQuestionsDisplay}
+          onOpenPalette={() => setPaletteOpen(true)}
+          tabSwitchWarnings={tabSwitchWarnings}
+          maxTabSwitchWarnings={MAX_TAB_SWITCH_WARNINGS}
+          sectionLabel={isSectionTimed && currentSection ? `Section ${currentSection.index + 1} of ${currentSection.totalSections}` : undefined}
+        />
+      </div>
 
       <div className="flex-1 flex min-h-0 overflow-hidden">
-        {/* Left column: question card + toolbar stay fixed in place, no scrolling here */}
+        {/* Left column: question card scrolls independently; toolbar stays pinned to bottom */}
         <div className="flex-1 flex flex-col min-w-0 min-h-0 overflow-hidden">
           {/* Section Header Banner for section-timed exams */}
           {isSectionTimed && currentSection && (
             <div className="bg-slate-50 border-b border-slate-200 px-4 sm:px-8 py-3 shrink-0">
-              <div className="max-w-2xl mx-auto">
+              <div className="max-w-4xl mx-auto">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-semibold text-navy-900">{currentSection.title}</p>
@@ -846,8 +858,15 @@ export default function ExamPage() {
             </div>
           )}
 
-          <div className="flex-1 flex items-start justify-center px-4 sm:px-8 py-6 sm:py-8 overflow-hidden">
-            <div className="max-w-2xl w-full mx-auto">
+          {/* Question pane: this is the ONLY area that scrolls for long questions.
+              min-h-0 is required on every flex ancestor above for this to work.
+              overscroll-contain stops scroll from "leaking" to the page behind it.
+              Extra bottom padding keeps the last option clear of the sticky footer. */}
+          <div
+            ref={questionScrollRef}
+            className="flex-1 overflow-y-auto overscroll-contain px-4 sm:px-8 py-6 sm:py-8"
+          >
+            <div className="max-w-4xl w-full mx-auto pb-8">
               <QuestionCard
                 question={currentQuestion}
                 index={currentIndex}
@@ -858,7 +877,10 @@ export default function ExamPage() {
             </div>
           </div>
 
-          <div className="border-t border-slate-200 bg-white px-4 sm:px-8 py-3 sm:py-4 shrink-0">
+          {/* Sticky footer toolbar - Clear / Mark for Review / Prev / Next / Submit.
+              Always pinned to the bottom of the left column, regardless of
+              how long the question above is. */}
+          <div className="shrink-0 sticky bottom-0 z-10 border-t border-slate-200 bg-white px-4 sm:px-8 py-3 sm:py-4">
             <div className="max-w-2xl mx-auto flex flex-wrap items-center justify-between gap-2.5">
               <div className="flex items-center gap-2">
                 <Button variant="secondary" size="sm" icon={Eraser} onClick={handleClear}>
@@ -899,11 +921,11 @@ export default function ExamPage() {
         </div>
 
         {/* Right sidebar: only the question-number palette scrolls; Submit button stays pinned */}
-        <aside className="hidden lg:flex lg:flex-col w-72 shrink-0 border-l border-slate-200 bg-white overflow-hidden">
-          <div className="flex-1 overflow-y-auto scrollbar-thin">
+        <aside className="hidden lg:flex lg:flex-col w-72 shrink-0 border-l border-slate-200 bg-white overflow-hidden min-h-0">
+          <div className="flex-1 overflow-y-auto overscroll-contain scrollbar-thin">
             <QuestionPalette statuses={statuses} currentIndex={currentIndex} onNavigate={setCurrentIndex} />
           </div>
-          <div className="p-4 border-t border-slate-200 shrink-0">
+          <div className="shrink-0 sticky bottom-0 p-4 border-t border-slate-200 bg-white">
             <Button variant="danger" className="w-full" icon={Send} onClick={() => setConfirmOpen(true)}>
               {isSectionTimed && currentSection && currentSection.index + 1 < currentSection.totalSections
                 ? `Next Section (${currentSection.index + 1}/${currentSection.totalSections})`

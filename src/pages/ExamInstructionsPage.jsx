@@ -496,7 +496,7 @@ export default function ExamInstructionsPage() {
   const timedSections = exam.isSectionTimed ? (sections || []).filter((s) => s.durationMinutes) : [];
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
+    <div className="max-w-5xl mx-auto space-y-6">
       <div>
         <div className="flex items-center gap-2 mb-1">
           <h1 className="font-display text-2xl font-bold text-navy-900">{exam.title}</h1>

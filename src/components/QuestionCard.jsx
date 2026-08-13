@@ -9,7 +9,7 @@ export default function QuestionCard({
   totalQuestions,
   selectedOptionId,
   onSelect,
-  revealAnswer = false,
+  revealAnswer = false, 
 }) {
   return (
     <div>
@@ -22,7 +22,7 @@ export default function QuestionCard({
         </span>
       </div>
 
-      <h2 className="text-lg sm:text-xl font-medium text-navy-900 leading-relaxed mb-6">
+      <h2 className="text-lg sm:text-xl font-medium text-navy-900 leading-relaxed mb-6 break-words whitespace-pre-wrap">
         {question.questionText}
       </h2>
 
@@ -39,7 +39,7 @@ export default function QuestionCard({
               disabled={revealAnswer}
               onClick={() => onSelect(option.id)}
               className={cn(
-                "w-full flex items-start gap-3 text-left px-4 py-3.5 rounded-lg border transition-colors",
+                "w-full flex items-start gap-3 text-left px-4 py-3.5 rounded-lg border transition-colors min-w-0",
                 "disabled:cursor-default",
                 isCorrect && "border-green-500 bg-green-50",
                 isWrongSelected && "border-red-400 bg-red-50",
@@ -58,7 +58,9 @@ export default function QuestionCard({
               >
                 {OPTION_LABELS[i] || i + 1}
               </span>
-              <span className="text-sm sm:text-base text-navy-800 pt-0.5">{option.text}</span>
+              <span className="text-sm sm:text-base text-navy-800 pt-0.5 break-words whitespace-pre-wrap min-w-0 flex-1 leading-relaxed">
+                {option.text}
+              </span>
               {isCorrect && <CheckCircle2 className="w-5 h-5 text-green-600 ml-auto shrink-0" />}
               {isWrongSelected && <XCircle className="w-5 h-5 text-red-500 ml-auto shrink-0" />}
             </button>

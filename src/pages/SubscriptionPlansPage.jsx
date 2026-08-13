@@ -75,7 +75,7 @@ export default function SubscriptionPlansPage() {
     };
 
     return (
-        <div className="space-y-6 max-w-5xl mx-auto">
+        <div className="space-y-6 w-full mx-auto">
             <div>
                 <h1 className="font-display text-2xl font-bold text-navy-900">Subscription Plans</h1>
                 <p className="text-sm text-slate-500 mt-1">Unlock every premium mock test.</p>
