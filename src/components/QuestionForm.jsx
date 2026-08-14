@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { Plus } from "lucide-react";
 import Button from "./ui/Button.jsx";
@@ -7,27 +8,33 @@ import { questionService } from "../services/questionService.js";
 
 const OPTION_IDS = ["optA", "optB", "optC", "optD"];
 
-export default function QuestionForm({ examId, sections, onCreated }) {
+const getDefaultValues = (question = null) => ({
+  questionText: question?.questionText ?? "",
+  optA: question?.options?.find((option) => option.id === "optA")?.text ?? "",
+  optB: question?.options?.find((option) => option.id === "optB")?.text ?? "",
+  optC: question?.options?.find((option) => option.id === "optC")?.text ?? "",
+  optD: question?.options?.find((option) => option.id === "optD")?.text ?? "",
+  correctOptionId: question?.correctOptionId ?? "optA",
+  marks: question?.marks ?? 1,
+  topic: question?.topic ?? "General",
+  difficulty: question?.difficulty ?? "medium",
+  explanation: question?.explanation ?? "",
+  sectionId: question?.sectionId ?? "",
+});
+
+export default function QuestionForm({ examId, sections, initialQuestion = null, onCreated, onUpdated, onCancel }) {
   const {
     register,
     handleSubmit,
     reset,
     formState: { errors, isSubmitting },
   } = useForm({
-    defaultValues: {
-      questionText: "",
-      optA: "",
-      optB: "",
-      optC: "",
-      optD: "",
-      correctOptionId: "optA",
-      marks: 1,
-      topic: "General",
-      difficulty: "medium",
-      explanation: "",
-      sectionId: "",
-    },
+    defaultValues: getDefaultValues(initialQuestion),
   });
+
+  useEffect(() => {
+    reset(getDefaultValues(initialQuestion));
+  }, [initialQuestion, reset]);
 
   const onSubmit = async (values) => {
     const payload = {
@@ -41,16 +48,30 @@ export default function QuestionForm({ examId, sections, onCreated }) {
       difficulty: values.difficulty,
       explanation: values.explanation,
     };
+
+    if (initialQuestion?._id) {
+      const updatedQuestion = await questionService.update(initialQuestion._id, payload);
+      reset(getDefaultValues(updatedQuestion));
+      onUpdated?.(updatedQuestion);
+      return;
+    }
+
     await questionService.create(payload);
-    reset();
+    reset(getDefaultValues());
     onCreated?.();
   };
 
+  const isEditing = Boolean(initialQuestion?._id);
+
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      <div className="flex items-center justify-between gap-2">
+        <h3 className="text-base font-semibold text-navy-900">{isEditing ? "Edit question" : "Add a new question"}</h3>
+      </div>
+
       <Textarea
         label="Question text"
-        rows={3}
+        rows={7}
         placeholder="e.g. Who is known as the Father of the Indian Constitution?"
         error={errors.questionText?.message}
         {...register("questionText", { required: "Question text is required" })}
@@ -111,9 +132,24 @@ export default function QuestionForm({ examId, sections, onCreated }) {
         {...register("explanation")}
       />
 
-      <Button type="submit" icon={Plus} isLoading={isSubmitting}>
-        Add Question
-      </Button>
+      <div className="flex flex-wrap items-center gap-3">
+        <Button type="submit" icon={Plus} isLoading={isSubmitting}>
+          {isEditing ? "Save Changes" : "Add Question"}
+        </Button>
+
+        {isEditing && (
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={() => {
+              reset(getDefaultValues());
+              onCancel?.();
+            }}
+          >
+            Cancel
+          </Button>
+        )}
+      </div>
     </form>
   );
 }

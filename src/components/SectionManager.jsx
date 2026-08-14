@@ -81,17 +81,28 @@ import Button from "./ui/Button.jsx";
 import Input from "./ui/Input.jsx";
 import { examService } from "../services/examService.js";
 
-export default function SectionManager({ examId, sections, onChange, isSectionTimed, examDurationMinutes = 0 }) {
+export default function SectionManager({
+  examId,
+  sections,
+  onChange,
+  isSectionTimed,
+  examDurationMinutes = 0,
+}) {
   const [title, setTitle] = useState("");
   const [duration, setDuration] = useState("");
   const [isAdding, setIsAdding] = useState(false);
 
-  const totalSectionMinutes = sections.reduce((sum, section) => sum + (Number(section.durationMinutes) || 0), 0);
-  const durationLimitExceeded = isSectionTimed && examDurationMinutes > 0 && totalSectionMinutes > examDurationMinutes;
+  const totalSectionMinutes = sections.reduce(
+    (sum, section) => sum + (Number(section.durationMinutes) || 0),
+    0
+  );
+  const durationLimitExceeded =
+    isSectionTimed && examDurationMinutes > 0 && totalSectionMinutes > examDurationMinutes;
 
   const handleAdd = async (e) => {
-    e.preventDefault();
+    e?.preventDefault();
     if (!title.trim()) return;
+
     setIsAdding(true);
     try {
       await examService.createSection(examId, {
@@ -131,12 +142,21 @@ export default function SectionManager({ examId, sections, onChange, isSectionTi
             duration before you can publish.
           </p>
           <div className="text-xs text-slate-600 mb-2">
-            Total section time: <span className={durationLimitExceeded ? "font-semibold text-red-600" : "font-semibold text-navy-700"}>{totalSectionMinutes}</span> / {examDurationMinutes} minutes
+            Total section time:{" "}
+            <span
+              className={
+                durationLimitExceeded ? "font-semibold text-red-600" : "font-semibold text-navy-700"
+              }
+            >
+              {totalSectionMinutes}
+            </span>{" "}
+            / {examDurationMinutes} minutes
           </div>
         </>
       )}
 
-      <form onSubmit={handleAdd} className="flex gap-2 mb-4 mt-3">
+      {/* Changed from <form> to <div> */}
+      <div className="flex gap-2 mb-4 mt-3">
         <Input
           placeholder="e.g. Quantitative Aptitude"
           value={title}
@@ -151,10 +171,11 @@ export default function SectionManager({ examId, sections, onChange, isSectionTi
           onChange={(e) => setDuration(e.target.value)}
           className="w-28"
         />
-        <Button type="submit" size="md" icon={Plus} isLoading={isAdding}>
+        {/* Changed type="submit" to type="button" and added onClick */}
+        <Button type="button" onClick={handleAdd} size="md" icon={Plus} isLoading={isAdding}>
           Add
         </Button>
-      </form>
+      </div>
 
       {sections.length === 0 ? (
         <p className="text-sm text-slate-400">
@@ -180,7 +201,9 @@ export default function SectionManager({ examId, sections, onChange, isSectionTi
                     className="w-16 text-sm border border-slate-300 rounded-md px-2 py-1 bg-white focus:outline-none focus:ring-2 focus:ring-navy-500/30 focus:border-navy-500"
                   />
                 </div>
+                {/* Ensure this is type="button" as well */}
                 <button
+                  type="button"
                   onClick={() => handleDelete(s._id)}
                   className="p-1.5 rounded-md text-slate-400 hover:text-red-600 hover:bg-red-50"
                   aria-label={`Delete ${s.title}`}

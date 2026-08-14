@@ -130,7 +130,7 @@ export default function AdminLayout() {
       <Navbar />
 
       {/* Main Container */}
-      <div className="flex-1 w-full max-w-7xl mx-auto flex flex-col md:flex-row">
+      <div className="flex-1 w-full max-w-8xl mx-auto flex flex-col md:flex-row">
 
         {/* Sidebar */}
         <aside className="md:w-64 shrink-0 bg-white md:bg-transparent border-b md:border-b-0 md:border-r border-slate-200">
@@ -190,7 +190,7 @@ export default function AdminLayout() {
 
         {/* Main Content Area */}
         <main className="flex-1 min-w-0 p-4 sm:p-6 md:p-8">
-          <div className="max-w-4xl">
+          <div className="w-full">
             <Outlet />
           </div>
         </main>

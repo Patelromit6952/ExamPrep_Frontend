@@ -383,13 +383,14 @@
 import { useEffect, useState } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { useNavigate, useParams } from "react-router-dom";
-import { Plus, Trash2, Save } from "lucide-react";
+import { Plus, Trash2, Save, Info } from "lucide-react";
 import { examService } from "../services/examService.js";
 import { EXAM_CATEGORIES } from "../utils/constants.js";
 import Card from "../components/ui/Card.jsx";
 import Input from "../components/ui/Input.jsx";
 import Button from "../components/ui/Button.jsx";
 import { Select, Textarea } from "../components/ui/FormFields.jsx";
+import SectionManager from "../components/SectionManager.jsx";
 import Spinner from "../components/ui/Spinner.jsx";
 
 export default function CreateExamPage() {
@@ -398,12 +399,20 @@ export default function CreateExamPage() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(isEditing);
   const [serverError, setServerError] = useState("");
+  const [sections, setSections] = useState([]);
+
+  const loadSections = async () => {
+    if (!examId) return;
+    const nextSections = await examService.getSections(examId);
+    setSections(nextSections);
+  };
 
   const {
     register,
     control,
     handleSubmit,
     reset,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm({
     defaultValues: {
@@ -435,6 +444,7 @@ export default function CreateExamPage() {
         isSectionTimed: exam.isSectionTimed || false,
         instructions: exam.instructions?.length ? exam.instructions.map((v) => ({ value: v })) : [{ value: "" }],
       });
+      loadSections();
       setLoading(false);
     });
   }, [examId, isEditing, reset]);
@@ -454,7 +464,8 @@ export default function CreateExamPage() {
         navigate("/admin");
       } else {
         const exam = await examService.create(payload);
-        navigate(`/admin/exams/${exam._id}/questions`);
+        // Automatically route to edit mode so they can now add sections & questions
+        navigate(`/admin/exams/${exam._id}/edit`);
       }
     } catch (err) {
       setServerError(err.message || "Something went wrong");
@@ -462,6 +473,8 @@ export default function CreateExamPage() {
   };
 
   if (loading) return <Spinner full label="Loading exam..." />;
+
+  const isSectionTimedChecked = watch("isSectionTimed");
 
   return (
     <div className="w-full space-y-6">
@@ -549,13 +562,32 @@ export default function CreateExamPage() {
               <span className="block text-sm font-medium text-navy-800">Section-wise timing</span>
               <span className="block text-xs text-navy-600/80 mt-0.5">
                 Each section gets its own countdown and students can't go back to a previous
-                section once they move on or its time runs out. Requires every question to be
-                assigned to a section, and every section to have its own duration (set these on
-                the Questions page after creating the exam). The duration above becomes
-                informational only — actual pacing is controlled per section.
+                section once they move on or its time runs out. Set the section names and each
+                section duration below, and make sure every question is assigned to a section.
+                The duration above stays as the overall exam limit.
               </span>
             </span>
           </label>
+
+          {/* Conditional Rendering for Section-wise timing */}
+          {isSectionTimedChecked && !isEditing && (
+            <div className="flex items-start gap-3 p-4 rounded-lg bg-blue-50 border border-blue-200 text-blue-800">
+              <Info className="w-5 h-5 shrink-0 mt-0.5" />
+              <p className="text-sm">
+                <strong>Save exam first:</strong> Because sections require an existing exam, please click "Create Exam & Add Questions" below first. You will be able to add sections immediately afterward.
+              </p>
+            </div>
+          )}
+
+          {isSectionTimedChecked && isEditing && (
+            <SectionManager
+              examId={examId}
+              sections={sections}
+              onChange={loadSections}
+              isSectionTimed={isSectionTimedChecked}
+              examDurationMinutes={Number(watch("durationMinutes") || 0)}
+            />
+          )}
 
           <div>
             <p className="text-sm font-medium text-navy-800 mb-2">Instructions</p>
